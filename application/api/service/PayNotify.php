@@ -28,11 +28,12 @@ class PayNotify extends \WxPayNotify
             try{
                 $order = OrderModel::where('order_no', '=', $orderNo)->lock(true)->find();
                 Log::record('rockpay-$order:'.var_export($order,true));
-                Log::record('rockpay-$order->status:'.$order->status);
+                Log::record('rockpay-$order->status:'.$order->status.'order_id'.$order->id);
                 if($order->status == 1){
                     //检测库存
-                    $order = new OrderService();
-                    $status = $order->checkStock($order->id);
+                    $orderService = new OrderService();
+                    $status = $orderService->checkStock($order->id);
+
                     Log::record('rockpay-$status:'.var_export($status,true));
                     if($status['pass']){
 
@@ -67,7 +68,7 @@ class PayNotify extends \WxPayNotify
     }
 
     private function reduceStock($status){
-        foreach($status['pStatus'] as $singlePStatus){
+        foreach($status['pStatusArray'] as $singlePStatus){
             Product::where('id', '=', $singlePStatus['id'])->setDec('stock', $singlePStatus['count']);
         }
     }
